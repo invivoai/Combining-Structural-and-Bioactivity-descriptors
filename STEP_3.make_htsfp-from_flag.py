@@ -24,6 +24,8 @@ ap.add_argument('-a', action="store", dest='annotation_data', required=True, hel
 ap.add_argument('-i', action="store", dest='hts_data', required=True, help='Path to refined hts data')          # folder with refined data produced by Noés script.
 ap.add_argument('-o', action="store", dest='outpath', default='htsfp_gen_out/' , help='Optional: set output path for fingerprint file')
 ap.add_argument('-t', action="store", dest='threshold', default=20000, type=int, help='Optional: threshold for minimum number of compounds per assay')
+ap.add_argument('-s', action="store", dest='cid2smi_file', default='cid2smiles.tsv', help='Optional: file containing the CID to SMILES conversion')
+
 
 args = ap.parse_args()
 
@@ -31,7 +33,7 @@ if args.hts_data[-1] != '/':
     args.hts_data = args.hts_data+'/'
 
 # additional inputs: file created by script: pubchem website or pubchempy
-cid2smi_file    = 'C:/CESFP_project/CID2smi_pubchem.txt'
+cid2smi_file = args.cid2smi_file
 
 # set path for output
 #if not os.path.exists(args.outpath):
@@ -101,10 +103,12 @@ print(time.time() - start)
 # In[6] save output file containing: cmpd ID: HTSFP
 print('saving output files')
 
-with open(outpath+'.txt', 'w') as csv_file:
+sep = ','
+with open(outpath+'.csv', 'w') as csv_file:
+    csv_file.write('{}{}{}{}{}\n'.format('cid', sep, 'SMILES', sep, sep.join(assay_selection)))
     for key, value in sorted(main_cmpd_dict.items()):
-       csv_file.write('{} {}\n'.format(key,' '.join(value)))
-print('HTSFP matrix file saved to:', outpath+'.txt')
+       csv_file.write('{}{}{}{}{}\n'.format(key, sep, cid2smi[key], sep, sep.join(value)))
+print('HTSFP matrix file saved to:', outpath+'.csv')
        
 # save a file containing an ordered list of assay IDs used to generate this HTSFP
 print('saving assay list to file')

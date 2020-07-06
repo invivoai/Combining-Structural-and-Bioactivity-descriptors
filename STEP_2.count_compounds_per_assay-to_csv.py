@@ -11,6 +11,14 @@ Created on Thu Jul 19 10:31:48 2018
 import pandas as pd
 import time
 import os
+import argparse
+
+ap = argparse.ArgumentParser(description='Takes refined hts data and generates a flag based fingerprint')
+ap.add_argument('-i', action="store", dest='hts_data', required=True, help='Path to refined hts data')          # folder with refined data produced by Noés script.
+args = ap.parse_args()
+
+pubchem_dump = args.hts_data
+pubchem_dump = pubchem_dump + '/' if pubchem_dump[-1] != '/' else pubchem_dump
 
 # In[1]
 # function for cid count in refined pubchem dump
@@ -39,6 +47,7 @@ def assay_uniq_cmpd_counts(folder):
         cid_lc_dict[file] = len(set(cid_set))
         #print('processing: {}%   AID: {}   cid count: {}   sid count: {}'.format(int(i/len(os.listdir(folder))*100), file, len(cid_set), len(sid_set)), end='\r')
     CID_uniq_df = pd.DataFrame.from_dict(cid_lc_dict, orient='index').sort_index()
+    CID_uniq_df.index.name = 'assay'
     CID_uniq_df.columns = ['count']
     return CID_uniq_df, all_cid_uniq
 
@@ -75,8 +84,7 @@ def assay_uniq_cmpd_counts_RAW(folder):
 # In[3]
 start = time.time()
 
-pubchem_dump = 'C:/CESFP_project/Step1a_out_refined_HTS_data/'
-#pubchem_dump = '//samba.scp.astrazeneca.net/kncv078/HTS_Project-Fingerprints/pubchemAssaysRAW/'
+
 
 print('beginning analysis')
 dfc, cid_list = assay_uniq_cmpd_counts(pubchem_dump)
@@ -84,10 +92,10 @@ dfc, cid_list = assay_uniq_cmpd_counts(pubchem_dump)
 
 print('d1 done, time taken: {}'.format(time.time()-start))
 
-with open('Step1b_out-all_uniq_cmpds_list.txt','w') as f:
+with open('Step2_out-all_uniq_cmpds_list.txt','w') as f:
     for i in cid_list:
         f.write('{}\n'.format(i))       
         
-dfc.to_csv('Step1b_out-annotationData_uniq_cid_count_perAssay.csv', sep='\t')
+dfc.to_csv('Step2_out-annotationData_uniq_cid_count_perAssay.tsv', sep='\t')
 
 print('finished, time taken: {}'.format(time.time()-start))
